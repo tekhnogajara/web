@@ -1,0 +1,1381 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feedback & Complaints{% endblock %}
+
+{% block content %}
+
+<!-- i18next CDN -->
+<script src="https://unpkg.com/i18next@23.7.6/i18next.min.js"></script>
+
+<style>
+/* Full width layout */
+body, .main-content, .container, [role="main"] {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.page-wrapper {
+    width: 100%;
+    padding: 20px 30px;
+    margin: 0;
+    box-sizing: border-box;
+    margin: -20px auto 0;
+}
+
+/* Language Switcher */
+.lang-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    justify-content: flex-end;
+}
+
+.lang-btn {
+    background: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #4b5563;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.lang-btn.active {
+    background: #8b5cf6;
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Page Title */
+.page-title{
+    padding: 0 4px 2px 4px;  
+    border-radius:16px;
+    margin-bottom:15px;
+    margin-top: -15px;  
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 8px 20px rgba(108,43,217,0.15);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.page-title h1{
+    color:#fff;
+    font-size:28px;
+    margin-bottom:5px;
+    font-weight:600;
+}
+
+.page-title p{
+    color:rgba(255,255,255,0.9);
+    font-size:15px;
+    margin:0;
+}
+
+/* Stats Cards */
+.stats-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108,43,217,0.08);
+    border-color: #6c2bd9;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #888;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    margin: 0;
+    font-size: 32px;
+    color: #333;
+    font-weight: 700;
+}
+
+/* Category Tabs and Filter Section */
+.category-filter-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+}
+
+.category-tabs {
+    display: flex;
+    width: 552px;
+    height: 50px;
+    border-radius: 40px;
+    justify-content: space-between;
+    padding: 10px 6px;
+    background: linear-gradient(135deg, #f6eeee, #f0f0f0);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.category-tab {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 35px;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.category-tab:hover {
+    background: rgba(255,255,255,0.7);
+    color: #495057;
+}
+
+.category-tab.active {
+    background: linear-gradient(135deg, #1333bf, #250ebe);
+    color: white !important;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 10px 30px 10px 15px;
+    border: 2px solid #f0f0f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #333;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    width: 180px;
+    background-color: #fafafa;
+}
+
+.filter-select:hover {
+    border-color: #6c2bd9;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #6c2bd9;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(108,43,217,0.1);
+}
+
+/* Table Container */
+.table-container {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid #f0f0f0;
+    overflow: auto;
+    margin-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+th {
+    background: #f8f4ff;
+    padding: 18px 20px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #e0d0ff;
+}
+
+td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #333;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: #fafafa;
+}
+
+/* Star Rating Styles */
+.feedback-cell {
+    max-width: 250px;
+}
+
+.feedback-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    border-left: 2px solid #8b5cf6;
+    cursor: default;
+}
+
+.feedback-rating {
+    color: #ffc107;
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.feedback-rating i {
+    margin-right: 2px;
+}
+
+.feedback-comment {
+    font-size: 12px;
+    color: #4b5563;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.no-feedback {
+    color: #9ca3af;
+    font-size: 12px;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    min-width: 80px;
+}
+
+.status-badge.pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status-badge.pending:hover {
+    background: #f57c00;
+    color: white;
+}
+
+.status-badge.resolved {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-badge.resolved:hover {
+    background: #388e3c;
+    color: white;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.action-btn.view {
+    padding: 6px 16px;
+    border-radius: 30px;
+    border: 2px solid #6f42c1;
+    background: white;
+    color: #6f42c1;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(111, 66, 193, 0.1);
+}
+
+.action-btn.view:hover {
+    background: #6f42c1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+.action-btn.view i {
+    margin-right: 5px;
+    transition: transform 0.3s ease;
+}
+
+.action-btn.view:hover i {
+    transform: translateX(3px);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+    font-size: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    color: #c62828;
+    background: #ffebee;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+/* Token Expired Message */
+.token-expired {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.token-expired a {
+    color: #8b5cf6;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Custom Confirmation Dialog */
+.confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    z-index: 1001;
+    animation: slideUp 0.3s ease;
+}
+
+.confirm-dialog h4 {
+    font-size: 20px;
+    color: #333;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.confirm-dialog p {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.confirm-dialog-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.confirm-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn.cancel {
+    background: #f3f4f6;
+    color: #666;
+}
+
+.confirm-btn.cancel:hover {
+    background: #e5e7eb;
+}
+
+.confirm-btn.confirm {
+    background: #6c2bd9;
+    color: white;
+}
+
+.confirm-btn.confirm:hover {
+    background: #5a1fb0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108,43,217,0.3);
+}
+
+/* Modal Styles */
+.modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-box {
+    background: #fff;
+    width: 500px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -30%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.modal-box h3 {
+    font-size: 24px;
+    color: #333;
+    margin: 0 0 25px 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+.modal-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.modal-info-item:last-child {
+    border-bottom: none;
+}
+
+.modal-info-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.modal-info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.modal-avatar {
+    width: 80px;
+    height: 80px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 32px;
+    margin: 0 auto 20px;
+}
+
+.modal-close-btn {
+    padding: 12px 32px;
+    border-radius: 30px;
+    border: 2px solid #6f42c1;
+    background: white;
+    color: #6f42c1;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(111, 66, 193, 0.1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+}
+
+.modal-close-btn:hover {
+    background: #6f42c1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-wrapper {
+        padding: 10px 15px;
+    }
+    
+    .stats-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .category-filter-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .category-tabs {
+        width: 100%;
+    }
+    
+    .filter-section {
+        width: 100%;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+    
+    .lang-bar {
+        justify-content: center;
+    }
+}
+</style>
+
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+<div class="page-wrapper">
+    <!-- Page Title -->
+    <div class="page-title">
+        <div>
+            <h1 data-i18n="feedback.page.title">Feedback & Complaints</h1>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p data-i18n="feedback.loading">Loading feedback data...</p>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorContainer" class="error-message"></div>
+
+    <!-- Token Expired Message -->
+    <div id="tokenExpiredMessage" class="token-expired" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span data-i18n="feedback.sessionExpired">Your session has expired. Please </span><a href="/login/" data-i18n="feedback.loginAgain">login again</a>.
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+        <!-- Stats Cards -->
+        <div class="stats-list" id="statsContainer"></div>
+
+        <!-- Category Tabs and Filter Section -->
+        <div class="category-filter-wrapper">
+            <div class="category-tabs">
+                <div class="category-tab active" data-category="customer" onclick="switchCategory('customer')"><span data-i18n="feedback.customerFeedback">Customer Feedback</span></div>
+                <div class="category-tab" data-category="vendor" onclick="switchCategory('vendor')"><span data-i18n="feedback.vendorComplaints">Vendor Complaints</span></div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section" id="statusFilterSection">
+                <select class="filter-select" id="statusFilter" onchange="applyFilter()">
+                    <option value="all" data-i18n="feedback.allStatus">All Status</option>
+                    <option value="pending" data-i18n="feedback.pending">Pending</option>
+                    <option value="resolved" data-i18n="feedback.resolved">Resolved</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <table id="ticketsTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Dialog -->
+<div id="confirmDialog" class="modal-bg" style="display: none;">
+    <div class="confirm-dialog">
+        <h4 data-i18n="feedback.confirmStatusChange">Confirm Status Change</h4>
+        <p id="confirmMessage" data-i18n="feedback.confirmStatusMessage">Are you sure you want to change the status?</p>
+        <div class="confirm-dialog-buttons">
+            <button class="confirm-btn cancel" onclick="closeConfirmDialog()"><span data-i18n="feedback.cancel">Cancel</span></button>
+            <button class="confirm-btn confirm" id="confirmActionBtn"><span data-i18n="feedback.confirm">Confirm</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Details Modal -->
+<div class="modal-bg" id="feedbackModal">
+    <div class="modal-box">
+        <h3><i class="fas fa-star" style="color: #ffc107;"></i> <span data-i18n="feedback.feedbackDetails">Feedback Details</span></h3>
+        <div class="modal-avatar" id="modalFeedbackAvatar">U</div>
+        
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.userName">User Name</span>
+            <span class="modal-info-value" id="modalFeedbackUser"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.orderId">Order ID</span>
+            <span class="modal-info-value" id="modalFeedbackOrder"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.type">Type</span>
+            <span class="modal-info-value" id="modalFeedbackType"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.rating">Rating</span>
+            <span class="modal-info-value" id="modalFeedbackRating"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.comment">Comment</span>
+            <span class="modal-info-value" id="modalFeedbackComment"></span>
+        </div>
+        <div class="modal-info-item" id="modalStatusRow">
+            <span class="modal-info-label" data-i18n="feedback.status">Status</span>
+            <span class="modal-info-value" id="modalFeedbackStatus"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.submittedOn">Submitted On</span>
+            <span class="modal-info-value" id="modalFeedbackDate"></span>
+        </div>
+        <div class="modal-info-item">
+            <span class="modal-info-label" data-i18n="feedback.vendor">Vendor</span>
+            <span class="modal-info-value" id="modalFeedbackVendor"></span>
+        </div>
+
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content: flex-end;">
+            <button type="button" onclick="closeFeedbackModal()" class="modal-close-btn"><span data-i18n="feedback.close">Close</span></button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ======================= TRANSLATIONS =======================
+const feedbackTranslations = {
+    en: {
+        translation: {
+            feedback: {
+                page: { title: "Feedback & Complaints" },
+                loading: "Loading feedback data...",
+                customerFeedback: "Customer Feedback",
+                vendorComplaints: "Vendor Complaints",
+                allStatus: "All Status",
+                pending: "Pending",
+                resolved: "Resolved",
+                confirmStatusChange: "Confirm Status Change",
+                confirmStatusMessage: "Are you sure you want to change the status?",
+                cancel: "Cancel",
+                confirm: "Confirm",
+                feedbackDetails: "Feedback Details",
+                userName: "User Name",
+                orderId: "Order ID",
+                type: "Type",
+                rating: "Rating",
+                comment: "Comment",
+                status: "Status",
+                submittedOn: "Submitted On",
+                vendor: "Vendor",
+                close: "View",
+                sessionExpired: "Your session has expired. Please ",
+                loginAgain: "login again",
+                openTickets: "Open Tickets",
+                inProgress: "In Progress",
+                resolvedTickets: "Resolved",
+                total: "Total",
+                noFeedback: "No feedback yet",
+                noComment: "No comment",
+                notAssigned: "Not Assigned",
+                successStatusChange: "Status successfully changed to ",
+                errorStatusChange: "Failed to update status",
+                errorLoadData: "Failed to load feedback data"
+            }
+        }
+    },
+    hi: {
+        translation: {
+            feedback: {
+                page: { title: "प्रतिक्रिया और शिकायतें" },
+                loading: "प्रतिक्रिया डेटा लोड हो रहा है...",
+                customerFeedback: "ग्राहक प्रतिक्रिया",
+                vendorComplaints: "विक्रेता शिकायतें",
+                allStatus: "सभी स्थितियाँ",
+                pending: "लंबित",
+                resolved: "हल",
+                confirmStatusChange: "स्थिति बदलने की पुष्टि करें",
+                confirmStatusMessage: "क्या आप स्थिति बदलना चाहते हैं?",
+                cancel: "रद्द करें",
+                confirm: "पुष्टि करें",
+                feedbackDetails: "प्रतिक्रिया विवरण",
+                userName: "उपयोगकर्ता का नाम",
+                orderId: "ऑर्डर आईडी",
+                type: "प्रकार",
+                rating: "रेटिंग",
+                comment: "टिप्पणी",
+                status: "स्थिति",
+                submittedOn: "सबमिट तिथि",
+                vendor: "विक्रेता",
+                close: "बंद करें",
+                sessionExpired: "आपका सत्र समाप्त हो गया है। कृपया ",
+                loginAgain: "फिर से लॉगिन करें",
+                openTickets: "खुले टिकट",
+                inProgress: "प्रगति में",
+                resolvedTickets: "हल किए गए",
+                total: "कुल",
+                noFeedback: "अभी कोई प्रतिक्रिया नहीं",
+                noComment: "कोई टिप्पणी नहीं",
+                notAssigned: "असाइन नहीं",
+                successStatusChange: "स्थिति सफलतापूर्वक बदलकर ",
+                errorStatusChange: "स्थिति अपडेट करने में विफल",
+                errorLoadData: "प्रतिक्रिया डेटा लोड करने में विफल"
+            }
+        }
+    },
+    mr: {
+        translation: {
+            feedback: {
+                page: { title: "प्रतिसाद आणि तक्रारी" },
+                loading: "प्रतिसाद डेटा लोड करत आहे...",
+                customerFeedback: "ग्राहक प्रतिसाद",
+                vendorComplaints: "विक्रेता तक्रारी",
+                allStatus: "सर्व स्थिती",
+                pending: "प्रलंबित",
+                resolved: "सोडवलेले",
+                confirmStatusChange: "स्थिती बदलण्याची पुष्टी करा",
+                confirmStatusMessage: "तुम्हाला स्थिती बदलायची आहे का?",
+                cancel: "रद्द करा",
+                confirm: "पुष्टी करा",
+                feedbackDetails: "प्रतिसाद तपशील",
+                userName: "वापरकर्त्याचे नाव",
+                orderId: "ऑर्डर आयडी",
+                type: "प्रकार",
+                rating: "रेटिंग",
+                comment: "टिप्पणी",
+                status: "स्थिती",
+                submittedOn: "सबमिट तारीख",
+                vendor: "विक्रेता",
+                close: "बंद करा",
+                sessionExpired: "तुमचे सत्र संपले आहे. कृपया ",
+                loginAgain: "पुन्हा लॉगिन करा",
+                openTickets: "उघडे टिकट",
+                inProgress: "प्रगतीपथावर",
+                resolvedTickets: "सोडवलेले",
+                total: "एकूण",
+                noFeedback: "अद्याप कोणताही प्रतिसाद नाही",
+                noComment: "कोणतीही टिप्पणी नाही",
+                notAssigned: "नियुक्त केलेले नाही",
+                successStatusChange: "स्थिती यशस्वीरित्या बदलली ",
+                errorStatusChange: "स्थिती अद्यतनित करण्यात अयशस्वी",
+                errorLoadData: "प्रतिसाद डेटा लोड करण्यात अयशस्वी"
+            }
+        }
+    }
+};
+
+// API Configuration
+const API_URL = "{{ BASE_URL }}/api/feedback/";
+let token = localStorage.getItem("api_token") || sessionStorage.getItem("api_token");
+let currentLanguage = localStorage.getItem('app_language') || 'en';
+let allFeedbacks = [];
+let filteredFeedbacks = [];
+let currentCategory = 'customer';
+let currentStatusFilter = 'all';
+let pendingStatusChange = { feedbackId: null, newStatus: null };
+
+// Check authentication
+if (!token) {
+    alert("Session expired. Please login again.");
+    window.location.href = "/login/";
+}
+
+// ======================= INITIALIZATION =======================
+document.addEventListener('DOMContentLoaded', function() {
+    i18next.init({
+        lng: currentLanguage,
+        resources: feedbackTranslations,
+        fallbackLng: 'en'
+    }, (err) => {
+        if (!err) {
+            applyTranslations();
+        }
+    });
+    
+    loadFeedbackData();
+    setupLanguageSwitcher();
+    applySavedLanguage();
+});
+
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            el.textContent = translated;
+        }
+    });
+    
+    // Update select options
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        const options = statusFilter.options;
+        if (options[0]) options[0].textContent = i18next.t('feedback.allStatus');
+        if (options[1]) options[1].textContent = i18next.t('feedback.pending');
+        if (options[2]) options[2].textContent = i18next.t('feedback.resolved');
+    }
+}
+
+function setupLanguageSwitcher() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lang = btn.getAttribute('data-lang');
+            currentLanguage = lang;
+            localStorage.setItem('app_language', lang);
+            i18next.changeLanguage(lang, () => {
+                applyTranslations();
+                loadFeedbackData();
+            });
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+}
+
+function applySavedLanguage() {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === savedLang) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+function showLoading(show) {
+    document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+    document.getElementById("mainContent").style.display = show ? "none" : "block";
+    document.getElementById("errorContainer").style.display = "none";
+    document.getElementById("tokenExpiredMessage").style.display = "none";
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById("errorContainer");
+    errorDiv.style.display = "block";
+    errorDiv.innerText = message;
+    document.getElementById("mainContent").style.display = "none";
+    document.getElementById("loadingSpinner").style.display = "none";
+}
+
+function handleUnauthorized() {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.getElementById('tokenExpiredMessage').style.display = 'flex';
+    document.getElementById('loadingSpinner').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'none';
+    applyTranslations();
+}
+
+function loadFeedbackData() {
+    showLoading(true);
+    
+    let url = API_URL;
+    if (currentLanguage && currentLanguage !== 'en') {
+        url += `?lang=${currentLanguage}`;
+    }
+    
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => {
+        if (res.status === 401) throw new Error("Unauthorized");
+        return res.json();
+    })
+    .then(response => {
+        console.log("API Response:", response);
+        showLoading(false);
+        
+        if (!response.success) {
+            showError(response.error || i18next.t('feedback.errorLoadData'));
+            return;
+        }
+        
+        // Store all feedbacks from the nested data structure
+        if (response.data && response.data.feedbacks) {
+            allFeedbacks = response.data.feedbacks || [];
+        } else if (Array.isArray(response.data)) {
+            allFeedbacks = response.data;
+        } else {
+            allFeedbacks = [];
+        }
+        
+        // Update stats cards
+        updateStatsCards(response.data.summary || {});
+        
+        // Apply initial filters and render
+        applyFilter();
+        
+        document.getElementById("mainContent").style.display = "block";
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        showLoading(false);
+        
+        if (err.message === "Unauthorized") {
+            handleUnauthorized();
+        } else {
+            showError(err.message);
+        }
+    });
+}
+
+function updateStatsCards(summary) {
+    const statsContainer = document.getElementById("statsContainer");
+    
+    const openTickets = summary.pending_complaint_count || 0;
+    const resolvedToday = summary.resolved_complaint_count || 0;
+    const totalFeedbacks = summary.feedback_count || 0;
+    const totalComplaints = summary.complaint_count || 0;
+    
+    statsContainer.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-label">${i18next.t('feedback.openTickets')}</div>
+            <div class="stat-value">${openTickets}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">${i18next.t('feedback.inProgress')}</div>
+            <div class="stat-value">${openTickets}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">${i18next.t('feedback.resolvedTickets')}</div>
+            <div class="stat-value">${resolvedToday}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">${i18next.t('feedback.total')}</div>
+            <div class="stat-value">${totalFeedbacks + totalComplaints}</div>
+        </div>
+    `;
+}
+
+function renderTable() {
+    const thead = document.getElementById('tableHeader');
+    const tbody = document.getElementById('tableBody');
+    const statusFilterSection = document.getElementById('statusFilterSection');
+    
+    if (currentCategory === 'customer') {
+        statusFilterSection.style.display = 'none';
+    } else {
+        statusFilterSection.style.display = 'block';
+    }
+    
+    if (currentCategory === 'customer') {
+        thead.innerHTML = `
+            <th>${i18next.t('feedback.userName')}</th>
+            <th>${i18next.t('feedback.type')}</th>
+            <th>${i18next.t('feedback.submittedOn')}</th>
+            <th>${i18next.t('feedback.comment')}</th>
+            <th>${i18next.t('feedback.close')}</th>
+        `;
+    } else {
+        thead.innerHTML = `
+            <th>${i18next.t('feedback.userName')}</th>
+            <th>${i18next.t('feedback.type')}</th>
+            <th>${i18next.t('feedback.submittedOn')}</th>
+            <th>${i18next.t('feedback.status')}</th>
+            <th>${i18next.t('feedback.close')}</th>
+        `;
+    }
+    
+    if (!filteredFeedbacks || filteredFeedbacks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 60px;">${i18next.t('feedback.noFeedback')}</td></tr>`;
+        return;
+    }
+    
+    let html = '';
+    
+    filteredFeedbacks.forEach(feedback => {
+        let formattedDate = 'N/A';
+        if (feedback.created_at) {
+            const createdDate = new Date(feedback.created_at);
+            const day = String(createdDate.getDate()).padStart(2, '0');
+            const month = String(createdDate.getMonth() + 1).padStart(2, '0');
+            const year = createdDate.getFullYear();
+            formattedDate = `${day}/${month}/${year}`;
+        }
+        
+        if (currentCategory === 'customer') {
+            let feedbackDisplay = getFeedbackHTML(feedback);
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(feedback.user_name || 'N/A')}</strong></td>
+                    <td>${escapeHtml(feedback.type || 'Feedback')}</td>
+                    <td>${formattedDate}</td>
+                    <td class="feedback-cell">${feedbackDisplay}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewFeedback(${feedback.feedback_id})">
+                                <i class="fas fa-eye"></i> ${i18next.t('feedback.close')}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            let statusClass = feedback.com_status === 'pending' ? 'pending' : 'resolved';
+            let statusText = feedback.com_status === 'pending' ? i18next.t('feedback.pending') : i18next.t('feedback.resolved');
+            
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(feedback.user_name || 'N/A')}</strong></td>
+                    <td>${escapeHtml(feedback.type || 'Complaint')}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}" onclick="confirmStatusChange(${feedback.feedback_id}, '${feedback.com_status}')">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewFeedback(${feedback.feedback_id})">
+                                <i class="fas fa-eye"></i> ${i18next.t('feedback.close')}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function getFeedbackHTML(feedback) {
+    if (!feedback || !feedback.rating) {
+        return `<div class="no-feedback">${i18next.t('feedback.noFeedback')}</div>`;
+    }
+    
+    const rating = parseFloat(feedback.rating);
+    const fullStars = Math.floor(rating);
+    let starsHTML = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHTML += '<i class="fas fa-star"></i>';
+    }
+    for (let i = fullStars; i < 5; i++) {
+        starsHTML += '<i class="far fa-star"></i>';
+    }
+    
+    const commentPreview = feedback.comment && feedback.comment.length > 30 
+        ? feedback.comment.substring(0, 30) + '...' 
+        : (feedback.comment || i18next.t('feedback.noComment'));
+    
+    return `
+        <div class="feedback-content">
+            <div class="feedback-rating">
+                ${starsHTML} <span style="color:#4b5563;margin-left:4px;">${rating.toFixed(1)}</span>
+            </div>
+            <div class="feedback-comment">
+                "${escapeHtml(commentPreview)}"
+            </div>
+        </div>
+    `;
+}
+
+function switchCategory(category) {
+    currentCategory = category;
+    
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    applyFilter();
+}
+
+function applyFilter() {
+    currentStatusFilter = document.getElementById('statusFilter').value;
+    
+    if (currentCategory === 'customer') {
+        filteredFeedbacks = allFeedbacks.filter(f => f.type === 'feedback');
+    } else {
+        filteredFeedbacks = allFeedbacks.filter(f => f.type === 'complaint');
+        if (currentStatusFilter !== 'all') {
+            filteredFeedbacks = filteredFeedbacks.filter(f => f.com_status === currentStatusFilter);
+        }
+    }
+    
+    renderTable();
+}
+
+function confirmStatusChange(feedbackId, currentStatus) {
+    const newStatus = currentStatus === 'pending' ? 'resolved' : 'pending';
+    const statusText = newStatus === 'pending' ? i18next.t('feedback.pending') : i18next.t('feedback.resolved');
+    
+    pendingStatusChange = { feedbackId: feedbackId, newStatus: newStatus };
+    document.getElementById('confirmMessage').innerHTML = `${i18next.t('feedback.confirmStatusMessage')} <strong>${statusText}</strong>?`;
+    document.getElementById('confirmActionBtn').onclick = function() { executeStatusChange(); };
+    document.getElementById('confirmDialog').style.display = 'block';
+}
+
+function closeConfirmDialog() {
+    document.getElementById('confirmDialog').style.display = 'none';
+    pendingStatusChange = { feedbackId: null, newStatus: null };
+}
+
+function executeStatusChange() {
+    if (!pendingStatusChange.feedbackId || !pendingStatusChange.newStatus) {
+        closeConfirmDialog();
+        return;
+    }
+    
+    const feedbackId = pendingStatusChange.feedbackId;
+    const newStatus = pendingStatusChange.newStatus;
+    closeConfirmDialog();
+    showLoading(true);
+    
+    fetch(`${API_URL}?feedback_id=${feedbackId}`, {
+        method: "PUT",
+        headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ com_status: newStatus })
+    })
+    .then(res => res.json())
+    .then(response => {
+        showLoading(false);
+        
+        if (response.success) {
+            const feedback = allFeedbacks.find(f => f.feedback_id === feedbackId);
+            if (feedback) {
+                feedback.com_status = newStatus;
+            }
+            alert(i18next.t('feedback.successStatusChange') + (newStatus === 'pending' ? i18next.t('feedback.pending') : i18next.t('feedback.resolved')));
+            applyFilter();
+        } else {
+            alert(response.error || i18next.t('feedback.errorStatusChange'));
+        }
+    })
+    .catch(err => {
+        showLoading(false);
+        console.error(err);
+        alert(i18next.t('feedback.errorStatusChange'));
+    });
+}
+
+function viewFeedback(feedbackId) {
+    const feedback = allFeedbacks.find(f => f.feedback_id === feedbackId);
+    if (feedback) {
+        showFeedbackModal(feedback);
+    }
+}
+
+function showFeedbackModal(feedback) {
+    if (!feedback) return;
+    
+    let starsHTML = '';
+    if (feedback.rating) {
+        const rating = parseFloat(feedback.rating);
+        const fullStars = Math.floor(rating);
+        
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<i class="fas fa-star" style="color: #ffc107;"></i>';
+        }
+        for (let i = fullStars; i < 5; i++) {
+            starsHTML += '<i class="far fa-star" style="color: #ffc107;"></i>';
+        }
+        starsHTML += ` <span style="color: #4b5563; margin-left: 4px;">(${rating.toFixed(1)})</span>`;
+    } else {
+        starsHTML = 'N/A';
+    }
+    
+    let formattedDate = 'N/A';
+    if (feedback.created_at) {
+        const feedbackDate = new Date(feedback.created_at);
+        const day = String(feedbackDate.getDate()).padStart(2, '0');
+        const month = String(feedbackDate.getMonth() + 1).padStart(2, '0');
+        const year = feedbackDate.getFullYear();
+        formattedDate = `${day}/${month}/${year}`;
+    }
+    
+    document.getElementById("modalFeedbackAvatar").innerHTML = getInitials(feedback.user_name);
+    document.getElementById("modalFeedbackUser").innerHTML = escapeHtml(feedback.user_name) || 'N/A';
+    document.getElementById("modalFeedbackOrder").innerHTML = `BK-${feedback.order_id || 'N/A'}`;
+    document.getElementById("modalFeedbackType").innerHTML = escapeHtml(feedback.type) || 'N/A';
+    document.getElementById("modalFeedbackRating").innerHTML = starsHTML;
+    document.getElementById("modalFeedbackComment").innerHTML = escapeHtml(feedback.comment) || i18next.t('feedback.noComment');
+    
+    const statusRow = document.getElementById('modalStatusRow');
+    if (feedback.type === 'complaint') {
+        statusRow.style.display = 'flex';
+        const statusClass = feedback.com_status === 'pending' ? 'pending' : 'resolved';
+        const statusText = feedback.com_status === 'pending' ? i18next.t('feedback.pending') : i18next.t('feedback.resolved');
+        document.getElementById("modalFeedbackStatus").innerHTML = `<span class="status-badge ${statusClass}" style="cursor: default;">${statusText}</span>`;
+    } else {
+        statusRow.style.display = 'none';
+    }
+    
+    document.getElementById("modalFeedbackDate").innerHTML = formattedDate;
+    document.getElementById("modalFeedbackVendor").innerHTML = escapeHtml(feedback.vendor_name) || i18next.t('feedback.notAssigned');
+    
+    document.getElementById("feedbackModal").style.display = "block";
+}
+
+function closeFeedbackModal() {
+    document.getElementById("feedbackModal").style.display = "none";
+}
+
+function getInitials(name) {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal-bg')) {
+        if (event.target.id === 'confirmDialog') {
+            closeConfirmDialog();
+        } else {
+            event.target.style.display = "none";
+        }
+    }
+}
+
+window.addEventListener('storage', function(e) {
+    if (e.key === 'app_language') {
+        const newLang = e.newValue;
+        if (newLang && newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            i18next.changeLanguage(newLang, () => {
+                applyTranslations();
+                loadFeedbackData();
+            });
+        }
+    }
+});
+
+setInterval(() => {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    if (savedLang !== currentLanguage) {
+        currentLanguage = savedLang;
+        i18next.changeLanguage(savedLang, () => {
+            applyTranslations();
+            loadFeedbackData();
+        });
+    }
+}, 1000);
+</script>
+
+{% endblock %}

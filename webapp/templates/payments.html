@@ -1,0 +1,546 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Payment & Revenue{% endblock %}
+
+{% block content %}
+
+<!-- i18next CDN -->
+<script src="https://unpkg.com/i18next@23.7.6/i18next.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.page-wrapper { 
+    padding: 20px;
+    margin: -30px auto 0;
+}
+
+.page-title h1 {
+    color: #fff;
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.filters div {
+    display: flex;
+    flex-direction: column;
+}
+
+.filters label {
+    font-size: 17px;
+    margin-bottom: 4px;
+    color: #0c0c0c;
+}
+
+.filters input,
+.filters select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    width: 150px;
+}
+
+/* Cards */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.card h4 {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.card h2 {
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+    font-weight: 700;
+}
+
+/* Chart */
+.chart-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    height: 350px;
+}
+
+/* Alert container */
+.alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.alert {
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 220px;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #fde8e8;
+    color: #9b1c1c;
+    border: 1px solid #fbd0d0;
+}
+</style>
+
+<div class="page-wrapper">
+
+<div class="page-title">
+    <h1 data-i18n="revenue.page.title">Payment & Revenue</h1>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+    <div>
+        <label data-i18n="revenue.fromDate">From Date</label>
+        <input type="date" id="fromDate">
+    </div>
+
+    <div>
+        <label data-i18n="revenue.toDate">To Date</label>
+        <input type="date" id="toDate">
+    </div>
+
+    <div style="margin-left:auto;">
+        <label data-i18n="revenue.paymentMode">Payment Mode</label>
+        <select id="paymentMode">
+            <option value="" data-i18n="revenue.allModes">All</option>
+            <option value="online" data-i18n="revenue.online">Online</option>
+            <option value="offline" data-i18n="revenue.offline">Offline</option>
+        </select>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+    <div class="card">
+        <h4 data-i18n="revenue.total">Total</h4>
+        <h2 id="totalRevenue">₹0</h2>
+    </div>
+    <div class="card">
+        <h4 data-i18n="revenue.weekly">Weekly</h4>
+        <h2 id="weeklyRevenue">₹0</h2>
+    </div>
+    <div class="card">
+        <h4 data-i18n="revenue.monthly">Monthly</h4>
+        <h2 id="monthlyRevenue">₹0</h2>
+    </div>
+    <div class="card">
+        <h4 data-i18n="revenue.cash">Cash</h4>
+        <h2 id="cashPayment">₹0</h2>
+    </div>
+    <div class="card">
+        <h4 data-i18n="revenue.online">Online</h4>
+        <h2 id="onlinePayment">₹0</h2>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="chart-box">
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<div class="alert-container" id="alert-container"></div>
+
+</div>
+
+<script>
+// ======================= TRANSLATIONS =======================
+const revenueTranslations = {
+    en: {
+        translation: {
+            revenue: {
+                page: { title: "Payment & Revenue" },
+                fromDate: "From Date",
+                toDate: "To Date",
+                paymentMode: "Payment Mode",
+                allModes: "All",
+                online: "Online",
+                offline: "Offline",
+                total: "Total",
+                weekly: "Weekly",
+                monthly: "Monthly",
+                cash: "Cash",
+                onlineLabel: "Online",
+                monthlyRevenueLabel: "Monthly Revenue (₹)",
+                jan: "Jan",
+                feb: "Feb",
+                mar: "Mar",
+                apr: "Apr",
+                may: "May",
+                jun: "Jun",
+                jul: "Jul",
+                aug: "Aug",
+                sep: "Sep",
+                oct: "Oct",
+                nov: "Nov",
+                dec: "Dec",
+                errorLoading: "Failed to load revenue data",
+                noData: "No data available"
+            }
+        }
+    },
+    hi: {
+        translation: {
+            revenue: {
+                page: { title: "भुगतान और राजस्व" },
+                fromDate: "तारीख से",
+                toDate: "तारीख तक",
+                paymentMode: "भुगतान मोड",
+                allModes: "सभी",
+                online: "ऑनलाइन",
+                offline: "ऑफलाइन",
+                total: "कुल",
+                weekly: "साप्ताहिक",
+                monthly: "मासिक",
+                cash: "नकद",
+                onlineLabel: "ऑनलाइन",
+                monthlyRevenueLabel: "मासिक राजस्व (₹)",
+                jan: "जन",
+                feb: "फर",
+                mar: "मार्च",
+                apr: "अप्रैल",
+                may: "मई",
+                jun: "जून",
+                jul: "जुलाई",
+                aug: "अगस्त",
+                sep: "सितंबर",
+                oct: "अक्टूबर",
+                nov: "नवंबर",
+                dec: "दिसंबर",
+                errorLoading: "राजस्व डेटा लोड करने में विफल",
+                noData: "कोई डेटा उपलब्ध नहीं"
+            }
+        }
+    },
+    mr: {
+        translation: {
+            revenue: {
+                page: { title: "पेमेंट आणि महसूल" },
+                fromDate: "तारखेपासून",
+                toDate: "तारखेपर्यंत",
+                paymentMode: "पेमेंट मोड",
+                allModes: "सर्व",
+                online: "ऑनलाइन",
+                offline: "ऑफलाइन",
+                total: "एकूण",
+                weekly: "साप्ताहिक",
+                monthly: "मासिक",
+                cash: "रोख",
+                onlineLabel: "ऑनलाइन",
+                monthlyRevenueLabel: "मासिक महसूल (₹)",
+                jan: "जाने",
+                feb: "फेब्रु",
+                mar: "मार्च",
+                apr: "एप्रिल",
+                may: "मे",
+                jun: "जून",
+                jul: "जुलै",
+                aug: "ऑगस्ट",
+                sep: "सप्टें",
+                oct: "ऑक्टो",
+                nov: "नोव्हें",
+                dec: "डिसें",
+                errorLoading: "महसूल डेटा लोड करण्यात अयशस्वी",
+                noData: "डेटा उपलब्ध नाही"
+            }
+        }
+    }
+};
+
+const API_URL = "{{ BASE_URL }}/api/admin/revenue_stats/";
+let token = localStorage.getItem("api_token") || sessionStorage.getItem("api_token");
+let revenueChart = null;
+let currentLanguage = localStorage.getItem('app_language') || 'en';
+
+// ======================= INITIALIZATION =======================
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    currentLanguage = savedLang;
+    
+    i18next.init({
+        lng: savedLang,
+        resources: revenueTranslations
+    }, (err) => {
+        if (!err) {
+            applyTranslations();
+            updateSelectOptions();
+        }
+    });
+    
+    // Load data after language is set
+    loadData();
+});
+
+// Apply translations to all elements with data-i18n attribute
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            if (el.tagName === 'OPTION') {
+                el.textContent = translated;
+            } else {
+                el.textContent = translated;
+            }
+        }
+    });
+}
+
+// Update select options with translated text
+function updateSelectOptions() {
+    const paymentModeSelect = document.getElementById("paymentMode");
+    if (paymentModeSelect) {
+        const options = paymentModeSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const key = option.getAttribute('data-i18n');
+            if (key) {
+                option.textContent = i18next.t(key);
+            }
+        }
+    }
+}
+
+// Reload data with new language
+function reloadWithLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('app_language', lang);
+    
+    i18next.changeLanguage(lang, () => {
+        applyTranslations();
+        updateSelectOptions();
+        loadData(); // Reload data
+    });
+}
+
+// Listen for language changes from settings page
+window.addEventListener('storage', function(e) {
+    if (e.key === 'app_language') {
+        const newLang = e.newValue;
+        if (newLang && newLang !== currentLanguage) {
+            reloadWithLanguage(newLang);
+        }
+    }
+});
+
+// Check for language changes periodically
+setInterval(() => {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    if (savedLang !== currentLanguage) {
+        reloadWithLanguage(savedLang);
+    }
+}, 1000);
+
+// Alert function
+function showAlert(message, type = 'success') {
+    const container = document.getElementById('alert-container');
+    if (!container) return;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    alertDiv.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+    container.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3500);
+}
+
+function formatMoney(val) {
+    return "₹" + Number(val || 0).toLocaleString("en-IN");
+}
+
+function loadData() {
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value;
+    const mode = document.getElementById("paymentMode").value;
+
+    let url = API_URL + "?";
+    if (from) url += `from_date=${from}&`;
+    if (to) url += `to_date=${to}&`;
+    if (mode) url += `payment_mode=${mode}`;
+
+    // Add language parameter if needed
+    if (currentLanguage && currentLanguage !== 'en') {
+        url += `&lang=${currentLanguage}`;
+    }
+
+    fetch(url, {
+        headers: {
+            "Authorization": token ? "Bearer " + token : ""
+        }
+    })
+    .then(res => {
+        if (!res.ok) {
+            if (res.status === 401) throw new Error("Unauthorized");
+            throw new Error("Failed to load data");
+        }
+        return res.json();
+    })
+    .then(res => {
+        if (!res.success) {
+            showAlert(res.message || i18next.t('revenue.errorLoading'), 'error');
+            return;
+        }
+
+        const data = res.data;
+
+        // Update cards
+        document.getElementById("totalRevenue").innerText = formatMoney(data.total_revenue);
+        document.getElementById("weeklyRevenue").innerText = formatMoney(data.last_week_revenue);
+        document.getElementById("monthlyRevenue").innerText = formatMoney(data.last_month_revenue);
+        document.getElementById("cashPayment").innerText = formatMoney(data.total_offline_payment);
+        document.getElementById("onlinePayment").innerText = formatMoney(data.total_online_payment);
+
+        // Month labels with translations
+        const monthLabels = [
+            i18next.t('revenue.jan'),
+            i18next.t('revenue.feb'),
+            i18next.t('revenue.mar'),
+            i18next.t('revenue.apr'),
+            i18next.t('revenue.may'),
+            i18next.t('revenue.jun'),
+            i18next.t('revenue.jul'),
+            i18next.t('revenue.aug'),
+            i18next.t('revenue.sep'),
+            i18next.t('revenue.oct'),
+            i18next.t('revenue.nov'),
+            i18next.t('revenue.dec')
+        ];
+
+        let values = Array(12).fill(0);
+        const currentMonth = new Date().getMonth();
+        values[currentMonth] = data.total_revenue;
+
+        // Highlight current month
+        const colors = monthLabels.map((_, i) =>
+            i === currentMonth ? '#4B9CD3' : '#D3E6F5'
+        );
+
+        // Smart Y-AXIS SCALE
+        const maxValue = Math.max(...values);
+        const baseMax = 10000;
+        const dynamicMax = Math.ceil(maxValue / 500) * 500 + 500;
+        const yMax = Math.max(baseMax, dynamicMax);
+
+        if (revenueChart) revenueChart.destroy();
+
+        revenueChart = new Chart(document.getElementById("revenueChart"), {
+            type: 'bar',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: i18next.t('revenue.monthlyRevenueLabel'),
+                    data: values,
+                    backgroundColor: colors,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: yMax,
+                        ticks: {
+                            stepSize: 500,
+                            callback: function(value) {
+                                return "₹" + value;
+                            }
+                        },
+                        grid: {
+                            color: "#eee"
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return "₹" + context.raw.toLocaleString("en-IN");
+                            }
+                        }
+                    },
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        if (err.message === "Unauthorized") {
+            showAlert(i18next.t('revenue.sessionExpired') || "Session expired. Please login again.", 'error');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = "/login/";
+        } else {
+            showAlert(i18next.t('revenue.errorLoading'), 'error');
+        }
+    });
+}
+
+// Auto reload on filter changes
+document.getElementById("fromDate").addEventListener("change", loadData);
+document.getElementById("toDate").addEventListener("change", loadData);
+document.getElementById("paymentMode").addEventListener("change", loadData);
+
+// Add translation for session expired message if not in translations
+if (!revenueTranslations.en.translation.revenue.sessionExpired) {
+    revenueTranslations.en.translation.revenue.sessionExpired = "Session expired. Please login again.";
+    revenueTranslations.hi.translation.revenue.sessionExpired = "सत्र समाप्त हुआ। कृपया फिर से लॉगिन करें।";
+    revenueTranslations.mr.translation.revenue.sessionExpired = "सत्र संपले. कृपया पुन्हा लॉगिन करा.";
+}
+
+// Initial load
+loadData();
+</script>
+
+{% endblock %}

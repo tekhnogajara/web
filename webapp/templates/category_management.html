@@ -1,0 +1,1037 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Category Management{% endblock %}
+
+{% block content %}
+
+<!-- i18next CDN -->
+<script src="https://unpkg.com/i18next@23.7.6/i18next.min.js"></script>
+
+<style>
+.page-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    margin-top: -15px;
+    box-sizing: border-box;
+}
+
+/* HEADER */
+.page-title {
+    padding: 2px 4px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 8px 20px rgba(108,43,217,0.15);
+    margin-top: -10px;
+}
+
+.page-title h1 {
+    color: #fff;
+    font-size: 28px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.page-title p {
+    color: rgba(255,255,255,0.9);
+    font-size: 15px;
+    margin: 0;
+}
+
+.add-btn {
+    background: #6c2bd9;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: -8px;
+}
+
+.add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+/* STATS CARDS */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+    margin-top: -5px;
+    max-width: 300px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108,43,217,0.08);
+    border-color: #6c2bd9;
+}
+
+.card h4 {
+    font-size: 14px;
+    color: #888;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+    font-weight: 700;
+}
+
+/* SEARCH BAR */
+.search-row {
+    background: #fff;
+    padding: 10px 15px;
+    border-radius: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid #f0f0f0;
+    margin-top: -8px;
+}
+
+.search-row input {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid #f0f0f0;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    flex: 1;
+}
+
+.search-row input:focus {
+    outline: none;
+    border-color: #6c2bd9;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(108,43,217,0.1);
+}
+
+/* TABLE BOX */
+.table-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f8f4ff;
+    padding: 18px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #e0d0ff;
+}
+
+td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    text-align: center;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background: #fafafa;
+}
+
+/* Category Name Link */
+.category-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.category-link:hover {
+    color: #6c2bd9;
+    text-decoration: underline;
+}
+
+/* ACTION BUTTONS */
+.action-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.edit-btn,
+.delete-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 70px;
+}
+
+.edit-btn {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.edit-btn:hover {
+    background: #f57c00;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(245,124,0,0.3);
+}
+
+.delete-btn {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.delete-btn:hover {
+    background: #c62828;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(198,40,40,0.3);
+}
+
+/* LOADING SPINNER */
+.loading {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+    font-size: 16px;
+}
+
+/* ERROR MESSAGE */
+.error-message {
+    text-align: center;
+    padding: 40px;
+    color: #c62828;
+    background: #ffebee;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+/* MODAL STYLES */
+.modal-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-bg[style*="display: block"] {
+    display: flex !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-box {
+    background: #fff;
+    width: 500px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+    margin: 0 auto;
+    position: relative;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-box h3 {
+    font-size: 24px;
+    color: #333;
+    margin: 0 0 25px 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+.modal-box label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.modal-box input,
+.modal-box select {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border: 2px solid #f0f0f0;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.modal-box input:focus,
+.modal-box select:focus {
+    outline: none;
+    border-color: #6c2bd9;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(108,43,217,0.1);
+}
+
+.field-note {
+    font-size: 12px;
+    color: #888;
+    margin-top: -15px;
+    margin-bottom: 15px;
+}
+
+.required-field::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+</style>
+
+<div class="page-wrapper">
+    <!-- HEADER SECTION -->
+    <div class="page-title">
+        <div>
+            <h1 data-i18n="categories.page.title">Category Management</h1>
+        </div>
+        <button class="add-btn" id="openCategoryModal">
+            <i class="fas fa-plus"></i> 
+            <span data-i18n="categories.addCategory">Add Category</span>
+        </button>
+    </div>
+
+    <br>
+    <!-- SEARCH SECTION -->
+    <div class="search-row">
+        <input type="text" id="searchInput" data-i18n-placeholder="categories.searchPlaceholder" placeholder="Search categories...">
+        <button class="add-btn" id="searchBtn">
+            <i class="fas fa-search"></i> 
+            <span data-i18n="categories.search">Search</span>
+        </button>
+    </div>
+
+    <!-- CATEGORIES TABLE -->
+    <div class="table-box">
+        <div id="loadingSpinner" class="loading" data-i18n="categories.loading">Loading categories...</div>
+        <div id="errorContainer" class="error-message" style="display: none;"></div>
+        <table id="categoryTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th data-i18n="categories.id">ID</th>
+                    <th data-i18n="categories.categoryName">Category Name</th>
+                    <th data-i18n="categories.actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ADD/EDIT CATEGORY MODAL -->
+<div class="modal-bg" id="categoryModal">
+    <div class="modal-box">
+        <h3 id="modalTitle" data-i18n="categories.addCategoryModal">Add Category</h3>
+        <form id="categoryForm" enctype="multipart/form-data">
+            <input type="hidden" name="type_id" id="categoryId">
+            
+            <label class="required-field" data-i18n="categories.categoryName">Category Name</label>
+            <input type="text" name="type_name" id="categoryName" required 
+                   data-i18n-placeholder="categories.categoryNamePlaceholder" placeholder="Enter category name">
+            <span id="categoryNameError" style="color:#dc3545; font-size:12px; margin-top:-15px; margin-bottom:15px; display:none;"></span>
+
+            <div style="margin-top:20px; display:flex; gap:10px; justify-content: flex-end;">
+                <button type="button" onclick="closeCategoryModal()" 
+                        style="padding:8px 15px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer;">
+                    <span data-i18n="categories.cancel">Cancel</span>
+                </button>
+                <button type="submit" class="add-btn" id="saveCategoryBtn">
+                    <span data-i18n="categories.save">Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-bg" id="deleteModal">
+    <div class="modal-box">
+        <h3 data-i18n="categories.confirmDeleteTitle">Confirm Delete</h3>
+        <p id="deleteMessage" style="text-align: center; margin: 20px 0; font-size: 16px;"></p>
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content: center;">
+            <button type="button" onclick="closeDeleteModal()" 
+                    style="padding:8px 15px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer;">
+                <span data-i18n="categories.cancel">Cancel</span>
+            </button>
+            <button type="button" class="delete-btn" id="confirmDeleteBtn" style="background:#c62828; color:white; padding:8px 20px;">
+                <span data-i18n="categories.delete">Delete</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteCategoryId = null;
+
+// API Configuration
+const API_BASE_URL = "{{ BASE_URL }}/api/service_types";
+let token = localStorage.getItem("api_token") || sessionStorage.getItem("api_token");
+let allCategories = [];
+let currentLanguage = localStorage.getItem('app_language') || 'en';
+let currentEditId = null;
+
+// ======================= TRANSLATIONS =======================
+const categoriesTranslations = {
+    en: {
+        translation: {
+            categories: {
+                page: { title: "Category Management" },
+                addCategory: "Add Category",
+                searchPlaceholder: "Search categories...",
+                search: "Search",
+                loading: "Loading categories...",
+                id: "ID",
+                categoryName: "Category Name",
+                actions: "Actions",
+                addCategoryModal: "Add Category",
+                editCategoryModal: "Edit Category",
+                categoryNamePlaceholder: "Enter category name",
+                cancel: "Cancel",
+                save: "Save",
+                update: "Update",
+                confirmDelete: "This category has associated services. Deleting it will also delete all related main and sub-services. Do you want to proceed?",
+                successCreated: "Category created successfully",
+                successUpdated: "Category updated successfully",
+                successDeleted: "Category deleted successfully",
+                errorLoadCategories: "Failed to load categories",
+                errorCreate: "Failed to create category",
+                errorUpdate: "Failed to update category",
+                errorDelete: "Failed to delete category",
+                errorNameBlank: "Category name cannot be blank",
+                sessionExpired: "Session expired. Please login again.",
+                networkError: "Network error. Please try again.",
+                noCategories: "No categories found"
+            }
+        }
+    },
+    hi: {
+        translation: {
+            categories: {
+                page: { title: "श्रेणी प्रबंधन" },
+                addCategory: "श्रेणी जोड़ें",
+                searchPlaceholder: "श्रेणियां खोजें...",
+                search: "खोजें",
+                loading: "श्रेणियां लोड हो रही हैं...",
+                id: "आईडी",
+                categoryName: "श्रेणी का नाम",
+                actions: "कार्य",
+                addCategoryModal: "श्रेणी जोड़ें",
+                editCategoryModal: "श्रेणी संपादित करें",
+                categoryNamePlaceholder: "श्रेणी का नाम दर्ज करें",
+                cancel: "रद्द करें",
+                save: "सहेजें",
+                update: "अपडेट करें",
+                confirmDelete: "यह श्रेणी संबंधित सेवाओं के साथ है। इसे हटाने से सभी संबंधित मुख्य और उपसेवाएं भी हट जाएंगी। क्या आप आगे बढ़ना चाहते हैं?",
+                successCreated: "श्रेणी सफलतापूर्वक बनाई गई",
+                successUpdated: "श्रेणी सफलतापूर्वक अपडेट की गई",
+                successDeleted: "श्रेणी सफलतापूर्वक हटाई गई",
+                errorLoadCategories: "श्रेणियां लोड करने में विफल",
+                errorCreate: "श्रेणी बनाने में विफल",
+                errorUpdate: "श्रेणी अपडेट करने में विफल",
+                errorDelete: "श्रेणी हटाने में विफल",
+                errorNameBlank: "श्रेणी का नाम खाली नहीं हो सकता",
+                sessionExpired: "सत्र समाप्त हुआ। कृपया फिर से लॉगिन करें।",
+                networkError: "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।",
+                noCategories: "कोई श्रेणी नहीं मिली"
+            }
+        }
+    },
+    mr: {
+        translation: {
+            categories: {
+                page: { title: "श्रेणी व्यवस्थापन" },
+                addCategory: "श्रेणी जोडा",
+                searchPlaceholder: "श्रेणी शोधा...",
+                search: "शोधा",
+                loading: "श्रेणी लोड होत आहेत...",
+                id: "आयडी",
+                categoryName: "श्रेणीचे नाव",
+                actions: "क्रिया",
+                addCategoryModal: "श्रेणी जोडा",
+                editCategoryModal: "श्रेणी संपादित करा",
+                categoryNamePlaceholder: "श्रेणीचे नाव प्रविष्ट करा",
+                cancel: "रद्द करा",
+                save: "जतन करा",
+                update: "अद्यतनित करा",
+                confirmDelete: "यह श्रेणी संबंधित सेवाओं के साथ है। इसे हटाने से सभी संबंधित मुख्य और उपसेवाएं भी हट जाएंगी। क्या आप आगे बढ़ना चाहते हैं?",
+                successCreated: "श्रेणी यशस्वीरित्या तयार केली",
+                successUpdated: "श्रेणी यशस्वीरित्या अद्यतनित केली",
+                successDeleted: "श्रेणी यशस्वीरित्या हटविली",
+                errorLoadCategories: "श्रेणी लोड करण्यात अयशस्वी",
+                errorCreate: "श्रेणी तयार करण्यात अयशस्वी",
+                errorUpdate: "श्रेणी अद्यतनित करण्यात अयशस्वी",
+                errorDelete: "श्रेणी हटविण्यात अयशस्वी",
+                errorNameBlank: "श्रेणीचे नाव रिकामे असू शकत नाही",
+                sessionExpired: "सत्र संपले. कृपया पुन्हा लॉगिन करा.",
+                networkError: "नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.",
+                noCategories: "कोणतीही श्रेणी सापडली नाही"
+            }
+        }
+    }
+};
+
+// ======================= UTILITY FUNCTIONS =======================
+function isBlank(str) {
+    return !str || str.trim() === '';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ======================= API CALLS =======================
+
+// GET Categories (with language and optional type_id)
+async function getCategories(lang = 'en', typeId = null) {
+    let url = `${API_BASE_URL}/?lang=${lang}`;
+    if (typeId) {
+        url += `&type_id=${typeId}`;
+    }
+    
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) throw new Error("Unauthorized");
+            throw new Error("Failed to load categories");
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        throw error;
+    }
+}
+
+// POST Create Category
+async function createCategory(categoryName) {
+    const formData = new FormData();
+    formData.append("type_name", categoryName);
+    
+    try {
+        const response = await fetch(API_BASE_URL + "/", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to create category");
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error creating category:", error);
+        throw error;
+    }
+}
+
+// PUT Update Category
+async function updateCategory(typeId, categoryName) {
+    const formData = new FormData();
+    formData.append("type_name", categoryName);
+    formData.append("type_id", typeId);
+    
+    try {
+        const response = await fetch(API_BASE_URL + "/", {
+            method: "PUT",
+            headers: {
+                "Authorization": "Bearer " + token
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to update category");
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error updating category:", error);
+        throw error;
+    }
+}
+
+// DELETE Category - FIXED VERSION
+async function deleteCategory(typeId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/?type_id=${typeId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Failed to delete category";
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error deleting category:", error);
+        throw error;
+    }
+}
+
+// ======================= UI RENDERING =======================
+
+async function loadCategories() {
+    showLoading(true);
+    
+    try {
+        const response = await getCategories(currentLanguage);
+        
+        showLoading(false);
+        
+        // Handle different response structures
+        let categories = [];
+        if (Array.isArray(response)) {
+            categories = response;
+        } else if (response.data && Array.isArray(response.data)) {
+            categories = response.data;
+        } else if (response.categories && Array.isArray(response.categories)) {
+            categories = response.categories;
+        } else if (response.success && response.data) {
+            categories = response.data;
+        }
+        
+        allCategories = categories;
+        renderTable(allCategories);
+    } catch (error) {
+        showLoading(false);
+        showError(error.message);
+        
+        if (error.message === "Unauthorized") {
+            alert(i18next.t('categories.sessionExpired'));
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = "/login/";
+        }
+    }
+}
+
+function navigateToServices(categoryId, categoryName) {
+    // Store the selected category info in sessionStorage
+    sessionStorage.setItem('selected_category_id', categoryId);
+    sessionStorage.setItem('selected_category_name', categoryName);
+    // Navigate to service management page with type_id parameter
+    window.location.href = `/service-management/?type_id=${categoryId}&type_name=${encodeURIComponent(categoryName)}`;
+}
+
+function renderTable(categories) {
+    let html = "";
+    
+    if (!categories || categories.length === 0) {
+        html = `<tr><td colspan="3" style="text-align: center; padding: 60px;">${i18next.t('categories.noCategories')}</td></tr>`;
+    } else {
+        categories.forEach(category => {
+            const categoryId = category.type_id || category.id;
+            const categoryName = category.type_name || category.name || category.category_name || 'Unnamed';
+            
+            html += `
+            <tr>
+                <td>${escapeHtml(String(categoryId))}</td>
+                <td>
+                    <a class="category-link" onclick="navigateToServices(${categoryId}, '${escapeHtml(categoryName)}')">
+                        <strong>${escapeHtml(categoryName)}</strong>
+                    </a>
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <button class="edit-btn" onclick="editCategory(${categoryId})">
+                            <i class="fas fa-edit"></i> ${i18next.t('Edit')}
+                        </button>
+                        <button class="delete-btn" onclick="deleteCategoryHandler(${categoryId})">
+                            <i class="fas fa-trash"></i> ${i18next.t('Delete')}
+                        </button>
+                    </div>
+                </td>
+            <tr>
+            `;
+        });
+    }
+    
+    document.getElementById("categoryTableBody").innerHTML = html;
+    document.getElementById("categoryTable").style.display = "table";
+}
+
+function showLoading(show) {
+    document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+    document.getElementById("categoryTable").style.display = show ? "none" : "table";
+    document.getElementById("errorContainer").style.display = "none";
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById("errorContainer");
+    errorDiv.style.display = "block";
+    errorDiv.innerText = message;
+    document.getElementById("categoryTable").style.display = "none";
+    document.getElementById("loadingSpinner").style.display = "none";
+}
+
+// ======================= CATEGORY CRUD OPERATIONS =======================
+
+function openAddCategoryModal() {
+    currentEditId = null;
+    document.getElementById("modalTitle").innerHTML = i18next.t('categories.addCategoryModal');
+    document.getElementById("categoryId").value = "";
+    document.getElementById("categoryName").value = "";
+    
+    const errorSpan = document.getElementById("categoryNameError");
+    if (errorSpan) {
+        errorSpan.style.display = "none";
+        errorSpan.textContent = "";
+    }
+    
+    document.getElementById("categoryModal").style.display = "block";
+}
+
+function editCategory(categoryId) {
+    event.stopPropagation();
+    const category = allCategories.find(c => (c.type_id || c.id) == categoryId);
+    if (!category) return;
+    
+    currentEditId = categoryId;
+    const categoryName = category.type_name || category.name || category.category_name;
+    
+    document.getElementById("modalTitle").innerHTML = i18next.t('categories.editCategoryModal');
+    document.getElementById("categoryId").value = categoryId;
+    document.getElementById("categoryName").value = categoryName;
+    
+    const errorSpan = document.getElementById("categoryNameError");
+    if (errorSpan) {
+        errorSpan.style.display = "none";
+        errorSpan.textContent = "";
+    }
+    
+    document.getElementById("categoryModal").style.display = "block";
+}
+
+function closeCategoryModal() {
+    document.getElementById("categoryModal").style.display = "none";
+    document.getElementById("categoryForm").reset();
+    const errorSpan = document.getElementById("categoryNameError");
+    if (errorSpan) {
+        errorSpan.style.display = "none";
+        errorSpan.textContent = "";
+    }
+}
+
+// async function deleteCategoryHandler(categoryId) {
+//     event.stopPropagation();
+//     if (confirm(i18next.t('categories.confirmDelete'))) {
+//         try {
+//             await deleteCategory(categoryId);
+//             alert(i18next.t('categories.successDeleted'));
+//             await loadCategories();
+//         } catch (error) {
+//             alert(i18next.t('categories.errorDelete') + ": " + error.message);
+//         }
+//     }
+// }
+
+// DELETE CATEGORY - With Modal
+function deleteCategoryHandler(categoryId) {
+    event.stopPropagation();
+    deleteCategoryId = categoryId;
+    document.getElementById("deleteMessage").innerHTML = i18next.t('categories.confirmDelete');
+    document.getElementById("deleteModal").style.display = "block";
+}
+
+// Close delete modal
+function closeDeleteModal() {
+    document.getElementById("deleteModal").style.display = "none";
+    deleteCategoryId = null;
+}
+
+// Confirm delete action
+document.getElementById("confirmDeleteBtn").addEventListener("click", async function() {
+    if (deleteCategoryId) {
+        try {
+            // Call the delete API
+            const response = await fetch(`${API_BASE_URL}/?type_id=${deleteCategoryId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (response.ok) {
+                // Close modal first
+                closeDeleteModal();
+                // Reload categories to refresh the list
+                await loadCategories();
+            } else {
+                const errorText = await response.text();
+                let errorMessage = "Failed to delete category";
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    errorMessage = errorText || errorMessage;
+                }
+                alert(i18next.t('categories.errorDelete') + ": " + errorMessage);
+                closeDeleteModal();
+            }
+        } catch (error) {
+            console.error("Error deleting category:", error);
+            alert(i18next.t('categories.errorDelete') + ": " + error.message);
+            closeDeleteModal();
+        }
+    }
+});
+
+
+// Form submission handler
+document.getElementById("categoryForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    
+    const categoryName = document.getElementById("categoryName").value;
+    
+    // Validate category name
+    if (isBlank(categoryName)) {
+        const errorSpan = document.getElementById("categoryNameError");
+        errorSpan.style.display = "block";
+        errorSpan.textContent = i18next.t('categories.errorNameBlank');
+        return;
+    }
+    
+    const saveBtn = document.getElementById("saveCategoryBtn");
+    saveBtn.disabled = true;
+    saveBtn.innerText = i18next.t('categories.save') + "...";
+    
+    try {
+        if (currentEditId) {
+            // Update existing category
+            await updateCategory(currentEditId, categoryName);
+            alert(i18next.t('categories.successUpdated'));
+        } else {
+            // Create new category
+            await createCategory(categoryName);
+            alert(i18next.t('categories.successCreated'));
+        }
+        
+        closeCategoryModal();
+        await loadCategories();
+    } catch (error) {
+        alert((currentEditId ? i18next.t('categories.errorUpdate') : i18next.t('categories.errorCreate')) + ": " + error.message);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = i18next.t('categories.save');
+    }
+});
+
+// ======================= SEARCH FUNCTIONALITY =======================
+
+function performSearch() {
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+    
+    const filteredCategories = allCategories.filter(category => {
+        const categoryName = (category.type_name || category.name || category.category_name || '').toLowerCase();
+        return categoryName.includes(searchTerm);
+    });
+    
+    renderTable(filteredCategories);
+}
+
+// ======================= LANGUAGE HANDLING =======================
+
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            el.textContent = translated;
+        }
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            el.placeholder = translated;
+        }
+    });
+}
+
+function changeLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('app_language', lang);
+    
+    i18next.changeLanguage(lang, () => {
+        applyTranslations();
+        loadCategories();
+    });
+}
+
+// ======================= INITIALIZATION =======================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    currentLanguage = savedLang;
+    
+    i18next.init({
+        lng: savedLang,
+        resources: categoriesTranslations
+    }, (err) => {
+        if (!err) {
+            applyTranslations();
+            loadCategories();
+        }
+    });
+    
+    // Event listeners
+    document.getElementById("openCategoryModal").addEventListener("click", openAddCategoryModal);
+    document.getElementById("searchBtn").addEventListener("click", performSearch);
+    
+    document.getElementById("searchInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            performSearch();
+        }
+    });
+    
+    document.getElementById("searchInput").addEventListener("input", function() {
+        if (this.value === "") {
+            renderTable(allCategories);
+        }
+    });
+    
+    // Real-time validation for category name
+    document.getElementById("categoryName").addEventListener("input", function() {
+        const errorSpan = document.getElementById("categoryNameError");
+        if (isBlank(this.value)) {
+            errorSpan.style.display = "block";
+            errorSpan.textContent = i18next.t('categories.errorNameBlank');
+        } else {
+            errorSpan.style.display = "none";
+            errorSpan.textContent = "";
+        }
+    });
+});
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal-bg')) {
+        event.target.style.display = "none";
+    }
+}
+
+// Listen for language changes from other pages
+window.addEventListener('storage', function(e) {
+    if (e.key === 'app_language') {
+        const newLang = e.newValue;
+        if (newLang && newLang !== currentLanguage) {
+            changeLanguage(newLang);
+        }
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,640 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<!-- Add Font Awesome for eye icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<!-- i18next CDN -->
+<script src="https://unpkg.com/i18next@23.7.6/i18next.min.js"></script>
+<style>
+html, body { height:100%; margin:0; }
+body {
+    background: url("{% static 'images/login-bg.png' %}") no-repeat center fixed;
+    height: 100%;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    display:flex; align-items:center; justify-content:center;
+}
+.login-box {
+    width:500px;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(10px);
+    border-radius:12px;
+    padding:50px;
+    text-align:center;
+    color:white;
+}
+.login-box img { width:100px; }
+.login-box input {
+    width:95%; padding:10px; border-radius:6px; border:none; margin:10px 0;
+}
+.btn {
+    width:100%; background:#6a1bff; color:white; border:none;
+    padding:10px; border-radius:6px; cursor:pointer; margin-top:15px;
+}
+
+.option-btn { background: #6a1bff; }
+
+/* Password wrapper with eye icon */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+.password-wrapper input {
+    width: 100%;
+    margin: 0;
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+    color: #555;
+}
+
+/* Contact row - input + Send OTP button side by side */
+.contact-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0;
+}
+.contact-row input {
+    flex: 1;
+    margin: 0;
+    width: auto;
+}
+.send-otp-btn {
+    background: #6a1bff;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 13px;
+    display: none;
+}
+.send-otp-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+/* OTP input */
+.otp-wrapper {
+    display: none;
+}
+.otp-wrapper input {
+    width: 95%;
+}
+
+/* Alert Container */
+.alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.alert {
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 220px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #fde8e8;
+    color: #9b1c1c;
+    border: 1px solid #fbd0d0;
+}
+
+.alert-warning {
+    background: #fff3e0;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+</style>
+</head>
+<body>
+
+<div class="alert-container" id="alert-container"></div>
+
+<div class="login-box">
+<img src="{% static 'images/login-logo.png' %}">
+<h2 data-i18n="login.title">Admin Login</h2>
+
+<form id="loginForm">
+{% csrf_token %}
+
+<!-- Contact number + Send OTP button -->
+<div class="contact-row">
+    <input type="text" id="mobile" name="mobile" data-i18n-placeholder="login.contactPlaceholder" placeholder="Enter Contact Number" required>
+    <button type="button" class="send-otp-btn" id="sendOtpBtn" onclick="sendOtp()" data-i18n="login.sendOtp">Send OTP</button>
+</div>
+
+<!-- PASSWORD MODE -->
+<div class="password-wrapper" id="passwordWrapper">
+    <input type="password" id="password" name="password" data-i18n-placeholder="login.passwordPlaceholder" placeholder="Enter Password">
+    <span class="toggle-password" id="toggleEye" onclick="togglePassword()">
+        <i class="fa-regular fa-eye-slash"></i>
+    </span>
+</div>
+
+<!-- OTP MODE: appears after OTP is sent -->
+<div class="otp-wrapper" id="otpWrapper">
+    <input type="text" id="otp" name="otp" data-i18n-placeholder="login.otpPlaceholder" placeholder="Enter OTP" maxlength="6">
+</div>
+
+<button type="submit" id="loginBtn" class="btn" data-i18n="login.loginBtn">Login</button>
+<button type="button" id="switchBtn" class="btn option-btn" onclick="switchMode()" data-i18n="login.switchToOtp">Login with OTP</button>
+
+</form>
+</div>
+
+<script>
+// ======================= TRANSLATIONS =======================
+const loginTranslations = {
+    en: {
+        translation: {
+            login: {
+                title: "Admin Login",
+                contactPlaceholder: "Enter Contact Number",
+                passwordPlaceholder: "Enter Password",
+                otpPlaceholder: "Enter OTP",
+                sendOtp: "Send OTP",
+                loginBtn: "Login",
+                switchToOtp: "Login with OTP",
+                switchToPassword: "Login with Password",
+                otpSent: "OTP Sent Successfully!",
+                resendIn: "Resend in",
+                resendOtp: "Resend OTP",
+                sending: "Login...",
+                messages: {
+                    enterContact: "Please enter your contact number first.",
+                    invalidContact: "Please enter a valid 10-digit contact number.",
+                    otpSentSuccess: "OTP sent successfully to your registered mobile number.",
+                    loginSuccess: "",
+                    loginFailed: "Login failed",
+                    serverError: "Server error while sending OTP",
+                    userNotRegistered: "User not registered. Please contact administrator.",
+                    invalidCredentials: "Invalid credentials. Please try again.",
+                    sessionExpired: "Session expired. Please login again.",
+                    accessTokenMissing: "Access token not received from API",
+                    networkError: "Network error. Please check your connection.",
+                    otpFailed: "Failed to send OTP. Please try again.",
+                    invalidOtp: "Invalid OTP. Please try again.",
+                    otpExpired: "OTP has expired. Please request a new one."
+                }
+            }
+        }
+    },
+    hi: {
+        translation: {
+            login: {
+                title: "एडमिन लॉगिन",
+                contactPlaceholder: "संपर्क नंबर दर्ज करें",
+                passwordPlaceholder: "पासवर्ड दर्ज करें",
+                otpPlaceholder: "ओटीपी दर्ज करें",
+                sendOtp: "ओटीपी भेजें",
+                loginBtn: "लॉगिन करें",
+                switchToOtp: "ओटीपी से लॉगिन करें",
+                switchToPassword: "पासवर्ड से लॉगिन करें",
+                otpSent: "ओटीपी सफलतापूर्वक भेजा गया!",
+                resendIn: "पुनः भेजें",
+                resendOtp: "ओटीपी पुनः भेजें",
+                sending: "लॉग इन...",
+                messages: {
+                    enterContact: "कृपया पहले अपना संपर्क नंबर दर्ज करें।",
+                    invalidContact: "कृपया 10 अंकों का वैध संपर्क नंबर दर्ज करें।",
+                    otpSentSuccess: "आपके पंजीकृत मोबाइल नंबर पर ओटीपी सफलतापूर्वक भेजा गया।",
+                    loginSuccess: "लॉगिन सफल",
+                    loginFailed: "लॉगिन विफल",
+                    serverError: "ओटीपी भेजते समय सर्वर त्रुटि",
+                    userNotRegistered: "उपयोगकर्ता पंजीकृत नहीं है। कृपया व्यवस्थापक से संपर्क करें।",
+                    invalidCredentials: "अमान्य क्रेडेंशियल्स। कृपया पुनः प्रयास करें।",
+                    sessionExpired: "सत्र समाप्त हुआ। कृपया फिर से लॉगिन करें।",
+                    accessTokenMissing: "एपीआई से एक्सेस टोकन प्राप्त नहीं हुआ",
+                    networkError: "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+                    otpFailed: "ओटीपी भेजने में विफल। कृपया पुनः प्रयास करें।",
+                    invalidOtp: "अमान्य ओटीपी। कृपया पुनः प्रयास करें।",
+                    otpExpired: "ओटीपी समाप्त हो गया है। कृपया नया अनुरोध करें।"
+                }
+            }
+        }
+    },
+    mr: {
+        translation: {
+            login: {
+                title: "एडमिन लॉगिन",
+                contactPlaceholder: "संपर्क क्रमांक प्रविष्ट करा",
+                passwordPlaceholder: "पासवर्ड प्रविष्ट करा",
+                otpPlaceholder: "ओटीपी प्रविष्ट करा",
+                sendOtp: "ओटीपी पाठवा",
+                loginBtn: "लॉगिन करा",
+                switchToOtp: "ओटीपीने लॉगिन करा",
+                switchToPassword: "पासवर्डने लॉगिन करा",
+                otpSent: "ओटीपी यशस्वीरित्या पाठविला!",
+                resendIn: "पुन्हा पाठवा",
+                resendOtp: "ओटीपी पुन्हा पाठवा",
+                sending: "लॉगिन....",
+                messages: {
+                    enterContact: "कृपया प्रथम आपला संपर्क क्रमांक प्रविष्ट करा.",
+                    invalidContact: "कृपया 10 अंकांचा वैध संपर्क क्रमांक प्रविष्ट करा.",
+                    otpSentSuccess: "आपल्या नोंदणीकृत मोबाइल क्रमांकावर ओटीपी यशस्वीरित्या पाठविला गेला.",
+                    loginSuccess: "लॉगिन यशस्वी",
+                    loginFailed: "लॉगिन अयशस्वी",
+                    serverError: "ओटीपी पाठवताना सर्व्हर त्रुटी",
+                    userNotRegistered: "वापरकर्ता नोंदणीकृत नाही. कृपया व्यवस्थापकाशी संपर्क साधा.",
+                    invalidCredentials: "अवैध क्रेडेन्शियल्स. कृपया पुन्हा प्रयत्न करा.",
+                    sessionExpired: "सत्र संपले. कृपया पुन्हा लॉगिन करा.",
+                    accessTokenMissing: "एपीआय वरून ऍक्सेस टोकन प्राप्त झाला नाही",
+                    networkError: "नेटवर्क त्रुटी. कृपया आपले कनेक्शन तपासा.",
+                    otpFailed: "ओटीपी पाठविण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+                    invalidOtp: "अवैध ओटीपी. कृपया पुन्हा प्रयत्न करा.",
+                    otpExpired: "ओटीपीची मुदत संपली आहे. कृपया नवीन विनंती करा."
+                }
+            }
+        }
+    }
+};
+
+// ======================= INITIALIZATION =======================
+let loginType = "password";
+let passwordVisible = false;
+let currentLanguage = localStorage.getItem('app_language') || 'en';
+
+// Initialize i18next
+document.addEventListener('DOMContentLoaded', function() {
+    const savedLang = localStorage.getItem('app_language') || 'en';
+    currentLanguage = savedLang;
+    
+    i18next.init({
+        lng: savedLang,
+        resources: loginTranslations
+    }, (err) => {
+        if (!err) {
+            applyTranslations();
+            updateButtonTexts();
+        }
+    });
+    
+    // Clear all input fields
+    clearFormFields();
+    
+    // Reset to password mode
+    resetToPasswordMode();
+    
+    // Clear any stored tokens
+    localStorage.removeItem('api_token');
+    localStorage.removeItem('user_id');
+    sessionStorage.removeItem('api_token');
+    sessionStorage.removeItem('user_id');
+});
+
+// Apply translations to all elements
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            el.textContent = translated;
+        }
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const translated = i18next.t(key);
+        if (translated && translated !== key) {
+            el.placeholder = translated;
+        }
+    });
+}
+
+// Update button texts when language changes
+function updateButtonTexts() {
+    const switchBtn = document.getElementById('switchBtn');
+    if (switchBtn) {
+        switchBtn.textContent = loginType === "password" ? 
+            i18next.t('login.switchToOtp') : 
+            i18next.t('login.switchToPassword');
+    }
+    
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    if (sendOtpBtn && sendOtpBtn.textContent !== i18next.t('login.sending')) {
+        sendOtpBtn.textContent = i18next.t('login.sendOtp');
+    }
+}
+
+// Reload with new language
+function reloadWithLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('app_language', lang);
+    
+    i18next.changeLanguage(lang, () => {
+        applyTranslations();
+        updateButtonTexts();
+    });
+}
+
+// Listen for language changes
+window.addEventListener('storage', function(e) {
+    if (e.key === 'app_language') {
+        const newLang = e.newValue;
+        if (newLang && newLang !== currentLanguage) {
+            reloadWithLanguage(newLang);
+        }
+    }
+});
+
+// Show alert function
+function showAlert(message, type = 'error') {
+    const container = document.getElementById('alert-container');
+    if (!container) return;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    const iconMap = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    };
+    const icon = iconMap[type] || 'fa-info-circle';
+    alertDiv.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+    container.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3500);
+}
+
+// Validate contact number (10 digits, Indian format)
+function isValidContactNumber(number) {
+    const mobileRegex = /^[6-9]\d{9}$/;
+    return mobileRegex.test(number);
+}
+
+function clearFormFields() {
+    document.getElementById('mobile').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('otp').value = '';
+}
+
+function resetToPasswordMode() {
+    loginType = "password";
+    document.getElementById('passwordWrapper').style.display = "flex";
+    document.getElementById('otpWrapper').style.display = "none";
+    document.getElementById('sendOtpBtn').style.display = "none";
+    const switchBtn = document.getElementById('switchBtn');
+    if (switchBtn) {
+        switchBtn.textContent = i18next.t('login.switchToOtp');
+    }
+    
+    // Reset password visibility
+    passwordVisible = false;
+    document.getElementById('password').type = "password";
+    const icon = document.querySelector("#toggleEye i");
+    if (icon) {
+        icon.classList.add('fa-eye-slash');
+        icon.classList.remove('fa-eye');
+    }
+}
+
+// Toggle show/hide password
+function togglePassword() {
+    const pwdInput = document.getElementById("password");
+    const icon = document.querySelector("#toggleEye i");
+    
+    passwordVisible = !passwordVisible;
+    pwdInput.type = passwordVisible ? "text" : "password";
+    icon.classList.toggle('fa-eye-slash');
+    icon.classList.toggle('fa-eye');
+}
+
+// Send OTP
+function sendOtp() {
+    const mobile = document.getElementById("mobile").value.trim();
+    if (!mobile) {
+        alert("Please enter your contact number first.");
+        return;
+    }
+ 
+    const sendBtn = document.getElementById("sendOtpBtn");
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+ 
+    let fd = new FormData();
+    fd.append("contact_number", mobile);
+ 
+    fetch("{{ BASE_URL }}/api/register-login/", {
+        method: "POST",
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert("OTP Sent Successfully!");
+ 
+            // Show OTP input field
+            document.getElementById("otpWrapper").style.display = "block";
+ 
+            // Change button text to "Resend OTP" and enable it immediately
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Resend OTP";
+           
+            // Optional: Focus on OTP input for better UX
+            document.getElementById("otp").focus();
+        } else {
+            alert(data.message || "Failed to send OTP");
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send OTP";
+        }
+    })
+    .catch(err => {
+        console.error("OTP send error:", err);
+        alert("Server error while sending OTP");
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send OTP";
+    });
+}
+
+
+// Switch between Password / OTP mode
+function switchMode() {
+    const passwordWrapper = document.getElementById("passwordWrapper");
+    const otpWrapper = document.getElementById("otpWrapper");
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+    const switchBtn = document.getElementById("switchBtn");
+
+    if (loginType === "password") {
+        loginType = "otp";
+        passwordWrapper.style.display = "none";
+        otpWrapper.style.display = "block";
+        sendOtpBtn.style.display = "block";
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = i18next.t('login.sendOtp');
+        switchBtn.textContent = i18next.t('login.switchToPassword');
+        
+        // Clear OTP field when switching
+        document.getElementById('otp').value = '';
+    } else {
+        loginType = "password";
+        otpWrapper.style.display = "none";
+        passwordWrapper.style.display = "flex";
+        sendOtpBtn.style.display = "none";
+        switchBtn.textContent = i18next.t('login.switchToOtp');
+        
+        // Reset password visibility when switching back
+        passwordVisible = false;
+        document.getElementById('password').type = "password";
+        document.getElementById('password').value = '';
+        const icon = document.querySelector("#toggleEye i");
+        if (icon) {
+            icon.classList.add('fa-eye-slash');
+            icon.classList.remove('fa-eye');
+        }
+    }
+}
+
+// Login submit
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const mobile = document.getElementById("mobile").value.trim();
+    
+    // Validate mobile number
+    if (!mobile) {
+        showAlert(i18next.t('login.messages.enterContact'), 'warning');
+        return;
+    }
+    
+    if (!isValidContactNumber(mobile)) {
+        showAlert(i18next.t('login.messages.invalidContact'), 'warning');
+        return;
+    }
+    
+    let fd = new FormData();
+    fd.append("contact_number", mobile);
+
+    if (loginType === "password") {
+        const password = document.getElementById("password").value;
+        if (!password) {
+            showAlert(i18next.t('login.messages.invalidCredentials'), 'warning');
+            return;
+        }
+        fd.append("password", password);
+    } else {
+        const otp = document.getElementById("otp").value;
+        if (!otp || otp.length !== 6) {
+            showAlert(i18next.t('login.messages.invalidOtp'), 'warning');
+            return;
+        }
+        fd.append("otp", otp);
+    }
+
+    const loginBtn = document.getElementById("loginBtn");
+    loginBtn.disabled = true;
+    loginBtn.textContent = i18next.t('login.sending');
+
+    fetch("{{ BASE_URL }}/api/register-login/", {
+        method: "POST",
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log("FULL LOGIN RESPONSE:", data);
+
+        if (!data.success) {
+            // Check for specific error messages
+            if (data.message && (data.message.includes("not registered") || data.message.includes("Not found"))) {
+                showAlert(i18next.t('login.messages.userNotRegistered'), 'warning');
+            } else if (data.message && data.message.includes("Invalid")) {
+                showAlert(i18next.t('login.messages.invalidCredentials'), 'error');
+            } else {
+                showAlert(data.message || i18next.t('login.messages.loginFailed'), 'error');
+            }
+            loginBtn.disabled = false;
+            loginBtn.textContent = i18next.t('login.loginBtn');
+            return;
+        }
+
+        const user_id = data.user_id || data.data?.user_id || data.data?.id || null;
+        const token = data.access || data.data?.access_token || data.data?.access || null;
+
+        console.log("USER ID:", user_id);
+        console.log("ACCESS TOKEN:", token);
+
+        if (!token) {
+            showAlert(i18next.t('login.messages.accessTokenMissing'), 'error');
+            loginBtn.disabled = false;
+            loginBtn.textContent = i18next.t('login.loginBtn');
+            return;
+        }
+
+        localStorage.clear();
+        sessionStorage.clear();
+
+        localStorage.setItem("api_token", token);
+        localStorage.setItem("user_id", user_id);
+
+        sessionStorage.setItem("api_token", token);
+        sessionStorage.setItem("user_id", user_id);
+
+        // showAlert(i18next.t('login.messages.loginSuccess'), 'success');
+        setTimeout(() => {
+            window.location.href = "/dashboard/";
+        }, 1000);
+    })
+    .catch(err => {
+        console.error("FETCH ERROR:", err);
+        showAlert(i18next.t('login.messages.networkError'), 'error');
+        loginBtn.disabled = false;
+        loginBtn.textContent = i18next.t('login.loginBtn');
+    });
+});
+
+// Logout function
+function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/login/";
+}
+</script>
+</body>
+</html>
